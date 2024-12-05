@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Preload>
+<Actor id="SYSTEM_ActorConfig"/>
+<Behavior id="LandTextureSnow"/>
+<Behavior id="LandTextureSeaGround"/>
+<Behavior id="LandTextureGrass"/>
+<Behavior id="LandTextureSand"/>
+<Behavior id="LandTextureDessert"/>
+<Terrain id="ShakurasTemple"/>
+</Preload>

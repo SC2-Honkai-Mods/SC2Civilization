@@ -1,0 +1,1164 @@
+//==================================================================================================
+// 
+// Generated Map Script
+// 
+// Name:   ?????????????????????????????????II?????????
+// 
+//==================================================================================================
+include "TriggerLibs/NativeLib"
+
+//--------------------------------------------------------------------------------------------------
+// Library: HonkaiCivilization
+//--------------------------------------------------------------------------------------------------
+// Constants
+const int lib1_gv_worldMapWidth = 128;
+const int lib1_gv_worldMapHeight = 62;
+
+// Structures
+struct lib1_gs_Land {
+    int lv_x;
+    int lv_y;
+    unit lv_land;
+    int lv_type;
+    bool lv_haveSea;
+    int lv_population;
+};
+
+// Variable Declarations
+lib1_gs_Land[lib1_gv_worldMapWidth + 1][lib1_gv_worldMapHeight + 1] lib1_gv_lands;
+
+// Function Declarations
+point lib1_gf_PointOffsetWithAngle (point lp_origin, fixed lp_angle, fixed lp_offset);
+point lib1_gf_RatioPoint (point lp_point1, point lp_point2, fixed lp_ratio);
+fixed lib1_gf_MapDistance (point lp_point1, point lp_point2);
+fixed lib1_gf_RoundXPos (fixed lp_x);
+void lib1_gf_LandCreateUnit (int lp_x, int lp_y);
+void lib1_gf_LandValueClear (int lp_x, int lp_y);
+point lib1_gf_LandGetPos (structref<lib1_gs_Land> lp_land);
+int lib1_gf_LandLocate (point lp_point);
+int lib1_gf_LandGetHeightKey (int lp_x, int lp_y);
+int lib1_gf_LandSoftGetX (int lp_x);
+int lib1_gf_LandSoftGetY (int lp_y);
+fixed lib1_gf_LandSoftGetHeightValue (int lp_key);
+void lib1_gf_SetCameraBounds (int lp_id);
+void lib1_gf_LandPosInitialize ();
+void lib1_gf_LandInitialize (int lp_seed);
+void lib1_gf_LandReset ();
+void lib1_gf_LandContinentSpawn ();
+void lib1_gf_LandContinentOperate (point lp_center);
+void lib1_gf_LandTrim ();
+void lib1_gf_LandIslandSpawn ();
+void lib1_gf_LandTrimContinentalShelf ();
+void lib1_gf_LandLakeSpawn ();
+void lib1_gf_LandRiverSpawn ();
+void lib1_gf_LandCheckWater ();
+void lib1_gf_LandUnitInitialize ();
+
+// Trigger Declarations
+trigger lib1_gt_SetSeed;
+trigger lib1_gt_Initialize;
+trigger lib1_gt_SwitchMap;
+
+// Library Initialization
+void lib1_InitVariables ();
+
+//--------------------------------------------------------------------------------------------------
+// Library: HonkaiCivilization
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void lib1_InitLibraries () {
+    libNtve_InitVariables();
+}
+
+// Variable Initialization
+bool lib1_InitVariables_completed = false;
+
+void lib1_InitVariables () {
+    int init_i;
+    int init_j;
+
+    if (lib1_InitVariables_completed) {
+        return;
+    }
+
+    lib1_InitVariables_completed = true;
+
+    for (init_i = 0; init_i <= lib1_gv_worldMapWidth; init_i += 1) {
+        for (init_j = 0; init_j <= lib1_gv_worldMapHeight; init_j += 1) {
+            lib1_gv_lands[init_i][init_j].lv_haveSea = true;
+        }
+    }
+}
+
+// Functions
+point lib1_gf_PointOffsetWithAngle (point lp_origin, fixed lp_angle, fixed lp_offset) {
+    // Automatic Variable Declarations
+    // Implementation
+    return PointWithOffset(lp_origin, (Cos(lp_angle) * lp_offset), (Sin(lp_angle) * lp_offset));
+}
+
+point lib1_gf_RatioPoint (point lp_point1, point lp_point2, fixed lp_ratio) {
+    // Automatic Variable Declarations
+    // Implementation
+    return PointWithOffset(lp_point1, ((PointGetX(lp_point2) - PointGetX(lp_point1)) * ((PointGetX(lp_point2) - PointGetX(lp_point1)) * lp_ratio)), ((PointGetY(lp_point2) - PointGetY(lp_point1)) * lp_ratio));
+}
+
+fixed lib1_gf_MapDistance (point lp_point1, point lp_point2) {
+    // Variable Declarations
+    fixed lv_d1;
+    fixed lv_d2;
+    fixed lv_d3;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_d1 = DistanceBetweenPoints(lp_point1, lp_point2);
+    lv_d2 = DistanceBetweenPoints(PointWithOffset(lp_point1, 256.0, 0.0), lp_point2);
+    lv_d3 = DistanceBetweenPoints(PointWithOffset(lp_point1, -256.0, 0.0), lp_point2);
+
+    // Implementation
+    return MinF(MinF(lv_d1, lv_d2), lv_d3);
+}
+
+fixed lib1_gf_RoundXPos (fixed lp_x) {
+    // Variable Declarations
+    int lv_round;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_round = FloorI((lp_x / lib1_gv_worldMapWidth));
+
+    // Implementation
+    return (lp_x - (lv_round * lib1_gv_worldMapWidth));
+}
+
+void lib1_gf_LandCreateUnit (int lp_x, int lp_y) {
+    // Variable Declarations
+    string lv_unitType;
+    int lv_angle;
+    int[4][4] lv_heights;
+    int lv_offsetX;
+    int lv_offsetY;
+    fixed lv_percentage;
+
+    // Automatic Variable Declarations
+    const int auto5ED6F4C8_ae = 1;
+    const int auto5ED6F4C8_ai = 1;
+    const int autoEB9832EC_ae = 1;
+    const int autoEB9832EC_ai = 1;
+    int auto4DF0051B_val;
+    string auto6EDC40E0_val;
+
+    // Variable Initialization
+    lv_angle = 270;
+
+    // Implementation
+    if ((lib1_gv_lands[lp_x][lp_y].lv_land != null)) {
+        UnitRemove(lib1_gv_lands[lp_x][lp_y].lv_land);
+    }
+
+    lv_offsetX = -1;
+    for ( ; ( (auto5ED6F4C8_ai >= 0 && lv_offsetX <= auto5ED6F4C8_ae) || (auto5ED6F4C8_ai < 0 && lv_offsetX >= auto5ED6F4C8_ae) ) ; lv_offsetX += auto5ED6F4C8_ai ) {
+        lv_offsetY = -1;
+        for ( ; ( (autoEB9832EC_ai >= 0 && lv_offsetY <= autoEB9832EC_ae) || (autoEB9832EC_ai < 0 && lv_offsetY >= autoEB9832EC_ae) ) ; lv_offsetY += autoEB9832EC_ai ) {
+            lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] = lib1_gf_LandGetHeightKey((lp_x + lv_offsetX), (lp_y + lv_offsetY));
+        }
+    }
+    auto4DF0051B_val = lv_heights[1][1];
+    if (auto4DF0051B_val == 1) {
+        lv_unitType = "LandSeaDeep";
+    }
+    else if (auto4DF0051B_val == 2) {
+        lv_unitType = "LandSeaShallow";
+    }
+    else if (auto4DF0051B_val == 4) {
+        if ((lib1_gv_lands[lp_x][lp_y].lv_haveSea == true)) {
+            lv_unitType = "LandSeaShore";
+        }
+        else {
+            lv_unitType = "LandLowland";
+        }
+    }
+    else if (auto4DF0051B_val == 5) {
+        lv_unitType = "LandGround";
+    }
+    else if (auto4DF0051B_val == 6) {
+        lv_unitType = "LandPlateau";
+    }
+    else {
+        lv_unitType = "LandSeaDeep";
+    }
+    UnitCreate(1, lv_unitType, 0, 0, lib1_gf_LandGetPos(lib1_gv_lands[lp_x][lp_y]), lv_angle);
+    UnitSetPingCursor(UnitLastCreated(), "Crosshairs");
+    lib1_gv_lands[lp_x][lp_y].lv_land = UnitLastCreated();
+    if ((lv_heights[1][1] >= 1)) {
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[0][2]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover01", "Cover 01", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover01", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[1][2]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover02", "Cover 02", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover02", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[2][2]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover03", "Cover 03", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover03", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[0][1]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover04", "Cover 04", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover04", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[2][1]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover05", "Cover 05", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover05", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[0][0]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover06", "Cover 06", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover06", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[1][0]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover07", "Cover 07", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover07", lv_percentage);
+        lv_percentage = (((lib1_gf_LandSoftGetHeightValue(lv_heights[2][0]) - lib1_gf_LandSoftGetHeightValue(lv_heights[1][1])) + 2.5) * 20.0);
+        libNtve_gf_PlayAnimation(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover08", "Cover 08", c_animFlagFullMatch | c_animFlagPlayForever, 0.0);
+        libNtve_gf_SetAnimationCompletion(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "Cover08", lv_percentage);
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover01");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover02");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover03");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover04");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover05");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover06");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover07");
+        ActorSend(libNtve_gf_MainActorofUnit(lib1_gv_lands[lp_x][lp_y].lv_land), "AnimSetPaused Cover08");
+    }
+
+    auto6EDC40E0_val = lv_unitType;
+    if (auto6EDC40E0_val == "LandPlateau") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureSnow", 0, 1);
+    }
+    else if (auto6EDC40E0_val == "LandGround") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureDessert", 0, 1);
+    }
+    else if (auto6EDC40E0_val == "LandLowland") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureGrass", 0, 1);
+    }
+    else if (auto6EDC40E0_val == "LandSeaShore") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureSand", 0, 1);
+    }
+    else if (auto6EDC40E0_val == "LandSeaShallow") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureSeaGround", 0, 1);
+    }
+    else if (auto6EDC40E0_val == "LandSeaDeep") {
+        UnitBehaviorAddPlayer(lib1_gv_lands[lp_x][lp_y].lv_land, "LandTextureSeaGround", 0, 1);
+    }
+    else {
+    }
+}
+
+void lib1_gf_LandValueClear (int lp_x, int lp_y) {
+    // Automatic Variable Declarations
+    // Implementation
+    UnitRemove(lib1_gv_lands[lp_x][lp_y].lv_land);
+    lib1_gv_lands[lp_x][lp_y].lv_population = 0;
+    lib1_gv_lands[lp_x][lp_y].lv_type = 1;
+    lib1_gv_lands[lp_x][lp_y].lv_land = null;
+    lib1_gv_lands[lp_x][lp_y].lv_haveSea = true;
+}
+
+point lib1_gf_LandGetPos (structref<lib1_gs_Land> lp_land) {
+    // Automatic Variable Declarations
+    // Implementation
+    return Point(((lp_land.lv_x * 2.0) + 1.0), ((lp_land.lv_y * 2.0) + 1.0));
+}
+
+int lib1_gf_LandLocate (point lp_point) {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_x = FloorI((PointGetX(lp_point) / 2.0));
+    lv_y = FloorI((PointGetY(lp_point) / 2.0));
+
+    // Implementation
+    lv_x = lib1_gf_LandSoftGetX(lv_x);
+    if (((lv_x >= 0) && (lv_x <= (lib1_gv_worldMapWidth - 1))) && ((lv_y >= 0) && (lv_y <= (lib1_gv_worldMapHeight - 1)))) {
+        return ((lv_x * lib1_gv_worldMapHeight) + lv_y);
+    }
+    else {
+        return -1;
+    }
+}
+
+int lib1_gf_LandGetHeightKey (int lp_x, int lp_y) {
+    // Automatic Variable Declarations
+    // Implementation
+    return (lib1_gv_lands[lib1_gf_LandSoftGetX(lp_x)][lib1_gf_LandSoftGetY(lp_y)].lv_type & 7);
+}
+
+int lib1_gf_LandSoftGetX (int lp_x) {
+    // Variable Declarations
+    int lv_round;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_round = FloorI((IntToFixed(lp_x) / lib1_gv_worldMapWidth));
+
+    // Implementation
+    return (lp_x - (lv_round * lib1_gv_worldMapWidth));
+}
+
+int lib1_gf_LandSoftGetY (int lp_y) {
+    // Automatic Variable Declarations
+    // Implementation
+    return libNtve_gf_ArithmeticIntClamp(lp_y, 0, (lib1_gv_worldMapHeight - 1));
+}
+
+fixed lib1_gf_LandSoftGetHeightValue (int lp_key) {
+    // Automatic Variable Declarations
+    int autoE8A340FB_val;
+
+    // Implementation
+    autoE8A340FB_val = lp_key;
+    if (autoE8A340FB_val == 1) {
+        return 0.5;
+    }
+    else if (autoE8A340FB_val == 2) {
+        return 1.5;
+    }
+    else if (autoE8A340FB_val == 4) {
+        return 1.8;
+    }
+    else if (autoE8A340FB_val == 5) {
+        return 2.2;
+    }
+    else if (autoE8A340FB_val == 6) {
+        return 2.6;
+    }
+    else {
+        return 1.75;
+    }
+}
+
+void lib1_gf_SetCameraBounds (int lp_id) {
+    // Automatic Variable Declarations
+    int autoFAFC10BF_val;
+
+    // Implementation
+    autoFAFC10BF_val = lp_id;
+    if (autoFAFC10BF_val == 0) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(2), true);
+    }
+    else if (autoFAFC10BF_val == 1) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(1), true);
+    }
+    else if (autoFAFC10BF_val == 2) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(3), true);
+    }
+    else if (autoFAFC10BF_val == 3) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(4), true);
+    }
+    else if (autoFAFC10BF_val == 4) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(5), true);
+    }
+    else if (autoFAFC10BF_val == 5) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(6), true);
+    }
+    else if (autoFAFC10BF_val == 6) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(7), true);
+    }
+    else if (autoFAFC10BF_val == 7) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(8), true);
+    }
+    else if (autoFAFC10BF_val == 8) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(9), true);
+    }
+    else if (autoFAFC10BF_val == 9) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(10), true);
+    }
+    else if (autoFAFC10BF_val == 10) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(11), true);
+    }
+    else if (autoFAFC10BF_val == 11) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(12), true);
+    }
+    else if (autoFAFC10BF_val == 12) {
+        CameraSetBounds(PlayerGroupAll(), RegionFromId(13), true);
+    }
+    else {
+        CameraSetBounds(PlayerGroupAll(), RegionEntireMap(), true);
+    }
+}
+
+void lib1_gf_LandPosInitialize () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+
+    // Automatic Variable Declarations
+    int auto9B9CE980_ae;
+    const int auto9B9CE980_ai = 1;
+    int auto949B7DE2_ae;
+    const int auto949B7DE2_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    auto9B9CE980_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (auto9B9CE980_ai >= 0 && lv_x <= auto9B9CE980_ae) || (auto9B9CE980_ai < 0 && lv_x >= auto9B9CE980_ae) ) ; lv_x += auto9B9CE980_ai ) {
+        auto949B7DE2_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (auto949B7DE2_ai >= 0 && lv_y <= auto949B7DE2_ae) || (auto949B7DE2_ai < 0 && lv_y >= auto949B7DE2_ae) ) ; lv_y += auto949B7DE2_ai ) {
+            lib1_gv_lands[lv_x][lv_y].lv_x = lv_x;
+            lib1_gv_lands[lv_x][lv_y].lv_y = lv_y;
+        }
+    }
+}
+
+void lib1_gf_LandInitialize (int lp_seed) {
+    // Automatic Variable Declarations
+    // Implementation
+    lib1_gf_LandReset();
+    GameSetSeed(lp_seed);
+    lib1_gf_LandContinentSpawn();
+    lib1_gf_LandTrim();
+    lib1_gf_LandTrim();
+    lib1_gf_LandIslandSpawn();
+    lib1_gf_LandTrimContinentalShelf();
+    lib1_gf_LandTrimContinentalShelf();
+    lib1_gf_LandLakeSpawn();
+    lib1_gf_LandRiverSpawn();
+    lib1_gf_LandCheckWater();
+    lib1_gf_LandUnitInitialize();
+}
+
+void lib1_gf_LandReset () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+
+    // Automatic Variable Declarations
+    int autoB3D10741_ae;
+    const int autoB3D10741_ai = 1;
+    int autoB07E7FA2_ae;
+    const int autoB07E7FA2_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    autoB3D10741_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (autoB3D10741_ai >= 0 && lv_x <= autoB3D10741_ae) || (autoB3D10741_ai < 0 && lv_x >= autoB3D10741_ae) ) ; lv_x += autoB3D10741_ai ) {
+        autoB07E7FA2_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (autoB07E7FA2_ai >= 0 && lv_y <= autoB07E7FA2_ae) || (autoB07E7FA2_ai < 0 && lv_y >= autoB07E7FA2_ae) ) ; lv_y += autoB07E7FA2_ai ) {
+            lib1_gf_LandValueClear(lv_x, lv_y);
+        }
+    }
+}
+
+void lib1_gf_LandContinentSpawn () {
+    // Variable Declarations
+    point[6] lv_continentCenter;
+    int lv_stage;
+    int lv_stage2;
+    bool lv_flag;
+    int lv_x;
+    int lv_y;
+
+    // Automatic Variable Declarations
+    const int auto8A239556_ae = 4;
+    const int auto8A239556_ai = 1;
+    const int auto5B6DE51A_n = 30;
+    int auto5B6DE51A_i;
+    int auto5819A55A_ae;
+    const int auto5819A55A_ai = 1;
+    const int auto38143DEC_ae = 4;
+    const int auto38143DEC_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    lv_stage = 0;
+    for ( ; ( (auto8A239556_ai >= 0 && lv_stage <= auto8A239556_ae) || (auto8A239556_ai < 0 && lv_stage >= auto8A239556_ae) ) ; lv_stage += auto8A239556_ai ) {
+        for (auto5B6DE51A_i = 1; auto5B6DE51A_i <= auto5B6DE51A_n; auto5B6DE51A_i += 1) {
+            auto5819A55A_ae = (lv_stage - 1);
+            lv_stage2 = 0;
+            for ( ; ( (auto5819A55A_ai >= 0 && lv_stage2 <= auto5819A55A_ae) || (auto5819A55A_ai < 0 && lv_stage2 >= auto5819A55A_ae) ) ; lv_stage2 += auto5819A55A_ai ) {
+                lv_continentCenter[lv_stage] = RegionRandomPoint(RegionFromId(2));
+                lv_flag = true;
+                if ((lv_continentCenter[lv_stage2] != null)) {
+                    if ((lib1_gf_MapDistance(lv_continentCenter[lv_stage], lv_continentCenter[lv_stage2]) < 36.0)) {
+                        lv_flag = false;
+                    }
+
+                }
+
+            }
+            if ((lv_flag == true)) {
+                break;
+            }
+            else {
+                lv_continentCenter[lv_stage] = null;
+            }
+        }
+    }
+    lv_stage = 0;
+    for ( ; ( (auto38143DEC_ai >= 0 && lv_stage <= auto38143DEC_ae) || (auto38143DEC_ai < 0 && lv_stage >= auto38143DEC_ae) ) ; lv_stage += auto38143DEC_ai ) {
+        if ((lv_continentCenter[lv_stage] != null)) {
+            lib1_gf_LandContinentOperate(lv_continentCenter[lv_stage]);
+        }
+
+    }
+}
+
+void lib1_gf_LandContinentOperate (point lp_center) {
+    // Variable Declarations
+    int lv_radius;
+    int lv_sonNumber;
+    point[11] lv_sonCenter;
+    int[11] lv_sonradius;
+    int lv_index;
+    int lv_index2;
+    fixed lv_angle;
+    fixed lv_angle2;
+    int lv_x;
+    int lv_y;
+    bool lv_flag;
+    point[13][9] lv_mountains;
+    int lv_mountainsNumber;
+    int[9] lv_mountainsJointNumber;
+    point lv_point;
+    fixed lv_r;
+    int lv_h;
+    int lv_p;
+
+    // Automatic Variable Declarations
+    int auto0A654E8A_n;
+    int auto0A654E8A_i;
+    int autoACAD027E_n;
+    int autoACAD027E_i;
+    int auto7A1535EA_n;
+    int auto7A1535EA_i;
+    int autoD4704F52_val;
+    int auto6A8098A0_ae;
+    int auto6A8098A0_var;
+    const int autoA21408C4_n = 10;
+    int autoA21408C4_i;
+    int auto81A6C317_ae;
+    int auto81A6C317_var;
+    int autoC6DBA9B4_ae;
+    const int autoC6DBA9B4_ai = 1;
+    int auto57DB7F2A_ae;
+    const int auto57DB7F2A_ai = 1;
+    int auto9A4E6174_n;
+    int auto9A4E6174_i;
+    int auto40E282F2_n;
+    int auto40E282F2_i;
+    int autoDD0AD275_n;
+    int autoDD0AD275_i;
+    const fixed auto3F6D233C_ae = 1.0;
+    const fixed auto3F6D233C_ai = 0.125;
+
+    // Variable Initialization
+
+    // Implementation
+    lv_radius = RandomInt(12, 28);
+    lv_sonNumber = RandomInt(4, 10);
+    auto0A654E8A_n = lv_sonNumber;
+    for (auto0A654E8A_i = 1; auto0A654E8A_i <= auto0A654E8A_n; auto0A654E8A_i += 1) {
+        lv_angle = libNtve_gf_RandomAngle();
+        lv_sonCenter[lv_index] = PointWithOffset(lp_center, (Cos(lv_angle) * lv_radius), (Sin(lv_angle) * lv_radius));
+        lv_sonradius[lv_index] = RandomInt(6, (lv_radius / 2));
+        lv_index += 1;
+    }
+    lv_index = 0;
+    lv_mountainsNumber = RandomInt(1, 6);
+    autoACAD027E_n = lv_mountainsNumber;
+    for (autoACAD027E_i = 1; autoACAD027E_i <= autoACAD027E_n; autoACAD027E_i += 1) {
+        lv_mountainsJointNumber[lv_index] = RandomInt(5, 12);
+        lv_index2 = 0;
+        auto7A1535EA_n = lv_mountainsJointNumber[lv_index];
+        for (auto7A1535EA_i = 1; auto7A1535EA_i <= auto7A1535EA_n; auto7A1535EA_i += 1) {
+            if ((lv_mountainsJointNumber[lv_index] <= lv_index2)) {
+                break;
+            }
+
+            autoD4704F52_val = lv_index2;
+            if (autoD4704F52_val == 0) {
+                lv_mountains[lv_index2][lv_index] = RegionRandomPoint(RegionCircle(lp_center, (lv_radius - 4)));
+            }
+            else if (autoD4704F52_val == 1) {
+                for (autoA21408C4_i = 1; autoA21408C4_i <= autoA21408C4_n; autoA21408C4_i += 1) {
+                    lv_angle = libNtve_gf_RandomAngle();
+                    lv_point = lib1_gf_PointOffsetWithAngle(lv_mountains[(lv_index2 - 1)][lv_index], lv_angle, RandomFixed(3.0, 5.0));
+                    lv_flag = RegionContainsPoint(RegionCircle(lp_center, lv_radius), lv_point);
+                    auto81A6C317_ae = (lv_sonNumber - 1);
+                    auto81A6C317_var = 0;
+                    for ( ; auto81A6C317_var <= auto81A6C317_ae; auto81A6C317_var += 1 ) {
+                        if ((lv_flag == true)) {
+                            break;
+                        }
+
+                        if ((RegionContainsPoint(RegionCircle(lv_sonCenter[auto81A6C317_var], lv_sonradius[auto81A6C317_var]), lv_point) == true)) {
+                            lv_flag = true;
+                            break;
+                        }
+
+                    }
+                    if ((lv_flag == true)) {
+                        lv_mountains[lv_index2][lv_index] = lv_point;
+                    }
+
+                }
+                if ((lv_flag == false)) {
+                    lv_mountainsJointNumber[lv_index] = 0;
+                }
+
+            }
+            else {
+                lv_angle = (lv_angle + RandomFixed(-30.0, 30.0) + RandomFixed(-30.0, 30.0) + RandomFixed(-30.0, 30.0));
+                lv_point = lib1_gf_PointOffsetWithAngle(lv_mountains[(lv_index2 - 1)][lv_index], lv_angle, RandomFixed(3.0, 5.0));
+                lv_flag = RegionContainsPoint(RegionCircle(lp_center, lv_radius), lv_point);
+                auto6A8098A0_ae = (lv_sonNumber - 1);
+                auto6A8098A0_var = 0;
+                for ( ; auto6A8098A0_var <= auto6A8098A0_ae; auto6A8098A0_var += 1 ) {
+                    if ((lv_flag == true)) {
+                        break;
+                    }
+
+                    if ((RegionContainsPoint(RegionCircle(lv_sonCenter[auto6A8098A0_var], lv_sonradius[auto6A8098A0_var]), lv_point) == true)) {
+                        lv_flag = true;
+                        break;
+                    }
+
+                }
+                if ((lv_flag == true)) {
+                    lv_mountains[lv_index2][lv_index] = lv_point;
+                }
+                else {
+                    lv_mountainsJointNumber[lv_index] = lv_index2;
+                }
+            }
+            lv_index2 += 1;
+        }
+        lv_index += 1;
+    }
+    autoC6DBA9B4_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (autoC6DBA9B4_ai >= 0 && lv_x <= autoC6DBA9B4_ae) || (autoC6DBA9B4_ai < 0 && lv_x >= autoC6DBA9B4_ae) ) ; lv_x += autoC6DBA9B4_ai ) {
+        auto57DB7F2A_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (auto57DB7F2A_ai >= 0 && lv_y <= auto57DB7F2A_ae) || (auto57DB7F2A_ai < 0 && lv_y >= auto57DB7F2A_ae) ) ; lv_y += auto57DB7F2A_ai ) {
+            lv_flag = (lib1_gf_MapDistance(lib1_gf_LandGetPos(lib1_gv_lands[lv_x][lv_y]), lp_center) <= lv_radius);
+            lv_index = 0;
+            auto9A4E6174_n = lv_sonNumber;
+            for (auto9A4E6174_i = 1; auto9A4E6174_i <= auto9A4E6174_n; auto9A4E6174_i += 1) {
+                if ((lv_flag == true)) {
+                    break;
+                }
+
+                if ((lib1_gf_MapDistance(lib1_gf_LandGetPos(lib1_gv_lands[lv_x][lv_y]), lv_sonCenter[lv_index]) <= lv_sonradius[lv_index])) {
+                    lv_flag = true;
+                }
+
+                lv_index += 1;
+            }
+            if ((lv_flag == true)) {
+                lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 4);
+            }
+
+        }
+    }
+    lv_index = 0;
+    auto40E282F2_n = lv_mountainsNumber;
+    for (auto40E282F2_i = 1; auto40E282F2_i <= auto40E282F2_n; auto40E282F2_i += 1) {
+        if ((lv_mountainsJointNumber[lv_index] <= 1)) {
+            lv_index += 1;
+            continue;
+        }
+
+        lv_index2 = 0;
+        autoDD0AD275_n = (lv_mountainsJointNumber[lv_index] - 1);
+        for (autoDD0AD275_i = 1; autoDD0AD275_i <= autoDD0AD275_n; autoDD0AD275_i += 1) {
+            if ((lv_index2 != 0) && (lv_index2 != (lv_mountainsJointNumber[lv_index] - 2))) {
+                lv_h = 6;
+            }
+            else {
+                lv_h = 5;
+            }
+            lv_r = 0.0;
+            for ( ; ( (auto3F6D233C_ai >= 0 && lv_r <= auto3F6D233C_ae) || (auto3F6D233C_ai < 0 && lv_r >= auto3F6D233C_ae) ) ; lv_r += auto3F6D233C_ai ) {
+                lv_p = lib1_gf_LandLocate(lib1_gf_RatioPoint(lv_mountains[lv_index2][lv_index], lv_mountains[(lv_index2 + 1)][lv_index], lv_r));
+                if ((lv_p < 0)) {
+                    continue;
+                }
+
+                lib1_gv_lands[(lv_p / lib1_gv_worldMapHeight)][ModI(lv_p, lib1_gv_worldMapHeight)].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | lv_h);
+            }
+            lv_index2 += 1;
+        }
+        lv_index += 1;
+    }
+}
+
+void lib1_gf_LandTrim () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+    fixed lv_v;
+    int[4][4] lv_heights;
+    int lv_offsetX;
+    int lv_offsetY;
+
+    // Automatic Variable Declarations
+    int autoEE2B5811_ae;
+    const int autoEE2B5811_ai = 1;
+    int auto17E8B990_ae;
+    const int auto17E8B990_ai = 1;
+    const int auto101943D1_ae = 1;
+    const int auto101943D1_ai = 1;
+    const int autoA5460512_ae = 1;
+    const int autoA5460512_ai = 1;
+    const int autoE3E52442_ae = 1;
+    const int autoE3E52442_ai = 1;
+    const int auto99782FCC_ae = 1;
+    const int auto99782FCC_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    autoEE2B5811_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (autoEE2B5811_ai >= 0 && lv_x <= autoEE2B5811_ae) || (autoEE2B5811_ai < 0 && lv_x >= autoEE2B5811_ae) ) ; lv_x += autoEE2B5811_ai ) {
+        auto17E8B990_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (auto17E8B990_ai >= 0 && lv_y <= auto17E8B990_ae) || (auto17E8B990_ai < 0 && lv_y >= auto17E8B990_ae) ) ; lv_y += auto17E8B990_ai ) {
+            if (((lib1_gv_lands[lv_x][lv_y].lv_type & 7) < 3)) {
+                continue;
+            }
+
+            if (((lib1_gv_lands[lv_x][lv_y].lv_type & 7) == 6)) {
+                if ((RandomFixed(0.0, 1.0) < 0.75)) {
+                    continue;
+                }
+
+            }
+
+            lv_v = 0.0;
+            lv_offsetX = -1;
+            for ( ; ( (auto101943D1_ai >= 0 && lv_offsetX <= auto101943D1_ae) || (auto101943D1_ai < 0 && lv_offsetX >= auto101943D1_ae) ) ; lv_offsetX += auto101943D1_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (autoA5460512_ai >= 0 && lv_offsetY <= autoA5460512_ae) || (autoA5460512_ai < 0 && lv_offsetY >= autoA5460512_ae) ) ; lv_offsetY += autoA5460512_ai ) {
+                    lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] = lib1_gf_LandGetHeightKey((lv_x + lv_offsetX), (lv_y + lv_offsetY));
+                }
+            }
+            lv_offsetX = -1;
+            for ( ; ( (autoE3E52442_ai >= 0 && lv_offsetX <= autoE3E52442_ae) || (autoE3E52442_ai < 0 && lv_offsetX >= autoE3E52442_ae) ) ; lv_offsetX += autoE3E52442_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (auto99782FCC_ai >= 0 && lv_offsetY <= auto99782FCC_ae) || (auto99782FCC_ai < 0 && lv_offsetY >= auto99782FCC_ae) ) ; lv_offsetY += auto99782FCC_ai ) {
+                    if ((lv_offsetX == 1) && (lv_offsetY == 1)) {
+                    }
+                    else {
+                        if (((lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] - lv_heights[1][1]) > 0)) {
+                            lv_v += 0.15;
+                        }
+
+                        if (((lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] - lv_heights[1][1]) < 0)) {
+                            lv_v -= 0.15;
+                        }
+
+                    }
+                }
+            }
+            if ((RandomFixed(0.0, 1.0) < AbsF(lv_v))) {
+                if ((lv_v < 0.0)) {
+                    lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | ((lib1_gv_lands[lv_x][lv_y].lv_type & 7) - 1));
+                }
+                else {
+                    lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | ((lib1_gv_lands[lv_x][lv_y].lv_type & 7) + 1));
+                }
+                if (((lib1_gv_lands[lv_x][lv_y].lv_type & 7) == 3)) {
+                    if ((RandomFixed(0.0, 100.0) > 50.0)) {
+                        lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 2);
+                    }
+                    else {
+                        lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 4);
+                    }
+                }
+
+            }
+
+        }
+    }
+}
+
+void lib1_gf_LandIslandSpawn () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+    int lv_offsetX;
+    int lv_offsetY;
+    bool lv_flag;
+    bool lv_flaglast;
+
+    // Automatic Variable Declarations
+    int auto251CDAC7_n;
+    int auto251CDAC7_i;
+    const int autoB8D52BEB_ae = 1;
+    const int autoB8D52BEB_ai = 1;
+    const int auto89455C08_ae = 1;
+    const int auto89455C08_ai = 1;
+    const int autoD52B129C_ae = 3;
+    const int autoD52B129C_ai = 1;
+    const int auto25498CC5_ae = 3;
+    const int auto25498CC5_ai = 1;
+    const int autoFAA17FC2_ae = 1;
+    const int autoFAA17FC2_ai = 1;
+    const int autoF43C8E39_ae = 1;
+    const int autoF43C8E39_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    auto251CDAC7_n = RandomInt(15, 30);
+    for (auto251CDAC7_i = 1; auto251CDAC7_i <= auto251CDAC7_n; auto251CDAC7_i += 1) {
+        if ((lv_flaglast == false)) {
+            lv_x = RandomInt(0, (lib1_gv_worldMapWidth - 1));
+            lv_y = RandomInt(0, (lib1_gv_worldMapHeight - 1));
+        }
+        else {
+            lv_x += RandomInt(-7, 7);
+            lv_y += RandomInt(-7, 7);
+        }
+        lv_flag = true;
+        lv_flaglast = false;
+        lv_offsetX = -1;
+        for ( ; ( (autoB8D52BEB_ai >= 0 && lv_offsetX <= autoB8D52BEB_ae) || (autoB8D52BEB_ai < 0 && lv_offsetX >= autoB8D52BEB_ae) ) ; lv_offsetX += autoB8D52BEB_ai ) {
+            if ((lv_flag == false)) {
+                break;
+            }
+
+            lv_offsetY = -1;
+            for ( ; ( (auto89455C08_ai >= 0 && lv_offsetY <= auto89455C08_ae) || (auto89455C08_ai < 0 && lv_offsetY >= auto89455C08_ae) ) ; lv_offsetY += auto89455C08_ai ) {
+                if (((lib1_gv_lands[lib1_gf_LandSoftGetX((lv_x + lv_offsetX))][lib1_gf_LandSoftGetY((lv_y + lv_offsetY))].lv_type & 7) >= 4)) {
+                    lv_flag = false;
+                    break;
+                }
+
+            }
+        }
+        if ((lv_flag == false)) {
+            continue;
+        }
+
+        lv_offsetX = -3;
+        for ( ; ( (autoD52B129C_ai >= 0 && lv_offsetX <= autoD52B129C_ae) || (autoD52B129C_ai < 0 && lv_offsetX >= autoD52B129C_ae) ) ; lv_offsetX += autoD52B129C_ai ) {
+            if ((lv_flag == false)) {
+                break;
+            }
+
+            lv_offsetY = -3;
+            for ( ; ( (auto25498CC5_ai >= 0 && lv_offsetY <= auto25498CC5_ae) || (auto25498CC5_ai < 0 && lv_offsetY >= auto25498CC5_ae) ) ; lv_offsetY += auto25498CC5_ai ) {
+                if (((lib1_gv_lands[lib1_gf_LandSoftGetX((lv_x + lv_offsetX))][lib1_gf_LandSoftGetY((lv_y + lv_offsetY))].lv_type & 7) >= 4)) {
+                    lv_flag = false;
+                    break;
+                }
+
+            }
+        }
+        if ((lv_flag == false)) {
+            lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 4);
+        }
+        else {
+            lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | RandomInt(4, 5));
+            lv_offsetX = -1;
+            for ( ; ( (autoFAA17FC2_ai >= 0 && lv_offsetX <= autoFAA17FC2_ae) || (autoFAA17FC2_ai < 0 && lv_offsetX >= autoFAA17FC2_ae) ) ; lv_offsetX += autoFAA17FC2_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (autoF43C8E39_ai >= 0 && lv_offsetY <= autoF43C8E39_ae) || (autoF43C8E39_ai < 0 && lv_offsetY >= autoF43C8E39_ae) ) ; lv_offsetY += autoF43C8E39_ai ) {
+                    if ((RandomInt(0, 1) == 0)) {
+                        lib1_gv_lands[lib1_gf_LandSoftGetX((lv_x + lv_offsetX))][lib1_gf_LandSoftGetY((lv_y + lv_offsetY))].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 4);
+                    }
+
+                }
+            }
+        }
+        lv_flaglast = true;
+    }
+}
+
+void lib1_gf_LandTrimContinentalShelf () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+    fixed lv_v;
+    int[4][4] lv_heights;
+    int lv_offsetX;
+    int lv_offsetY;
+
+    // Automatic Variable Declarations
+    int autoCF5874D3_ae;
+    const int autoCF5874D3_ai = 1;
+    int autoB7A74041_ae;
+    const int autoB7A74041_ai = 1;
+    const int autoBDCEC6A3_ae = 1;
+    const int autoBDCEC6A3_ai = 1;
+    const int autoC89DF810_ae = 1;
+    const int autoC89DF810_ai = 1;
+    const int autoEF68FD31_ae = 1;
+    const int autoEF68FD31_ai = 1;
+    const int auto69F9C015_ae = 1;
+    const int auto69F9C015_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    autoCF5874D3_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (autoCF5874D3_ai >= 0 && lv_x <= autoCF5874D3_ae) || (autoCF5874D3_ai < 0 && lv_x >= autoCF5874D3_ae) ) ; lv_x += autoCF5874D3_ai ) {
+        autoB7A74041_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (autoB7A74041_ai >= 0 && lv_y <= autoB7A74041_ae) || (autoB7A74041_ai < 0 && lv_y >= autoB7A74041_ae) ) ; lv_y += autoB7A74041_ai ) {
+            if (((lib1_gv_lands[lv_x][lv_y].lv_type & 7) != 1)) {
+                continue;
+            }
+
+            lv_v = 0.0;
+            lv_offsetX = -1;
+            for ( ; ( (autoBDCEC6A3_ai >= 0 && lv_offsetX <= autoBDCEC6A3_ae) || (autoBDCEC6A3_ai < 0 && lv_offsetX >= autoBDCEC6A3_ae) ) ; lv_offsetX += autoBDCEC6A3_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (autoC89DF810_ai >= 0 && lv_offsetY <= autoC89DF810_ae) || (autoC89DF810_ai < 0 && lv_offsetY >= autoC89DF810_ae) ) ; lv_offsetY += autoC89DF810_ai ) {
+                    lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] = lib1_gf_LandGetHeightKey((lv_x + lv_offsetX), (lv_y + lv_offsetY));
+                }
+            }
+            lv_v = 0.0;
+            lv_offsetX = -1;
+            for ( ; ( (autoEF68FD31_ai >= 0 && lv_offsetX <= autoEF68FD31_ae) || (autoEF68FD31_ai < 0 && lv_offsetX >= autoEF68FD31_ae) ) ; lv_offsetX += autoEF68FD31_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (auto69F9C015_ai >= 0 && lv_offsetY <= auto69F9C015_ae) || (auto69F9C015_ai < 0 && lv_offsetY >= auto69F9C015_ae) ) ; lv_offsetY += auto69F9C015_ai ) {
+                    if ((lv_offsetX == 1) && (lv_offsetY == 1)) {
+                    }
+                    else {
+                        if (((lv_heights[(lv_offsetX + 1)][(lv_offsetY + 1)] - lv_heights[1][1]) > 0)) {
+                            lv_v += 0.2;
+                        }
+
+                    }
+                }
+            }
+            if ((RandomFixed(0.0, 1.0) < AbsF(lv_v))) {
+                lib1_gv_lands[lv_x][lv_y].lv_type = (((lib1_gv_lands[lv_x][lv_y].lv_type >> 3) << 3) | 2);
+            }
+
+        }
+    }
+}
+
+void lib1_gf_LandLakeSpawn () {
+    // Automatic Variable Declarations
+}
+
+void lib1_gf_LandRiverSpawn () {
+    // Automatic Variable Declarations
+}
+
+void lib1_gf_LandCheckWater () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+    int lv_offsetX;
+    int lv_offsetY;
+    bool lv_flag;
+
+    // Automatic Variable Declarations
+    int auto2598D37D_ae;
+    const int auto2598D37D_ai = 1;
+    int auto07B65B46_ae;
+    const int auto07B65B46_ai = 1;
+    const int auto726894A3_ae = 1;
+    const int auto726894A3_ai = 1;
+    const int auto2CD62E8E_ae = 1;
+    const int auto2CD62E8E_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    auto2598D37D_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (auto2598D37D_ai >= 0 && lv_x <= auto2598D37D_ae) || (auto2598D37D_ai < 0 && lv_x >= auto2598D37D_ae) ) ; lv_x += auto2598D37D_ai ) {
+        auto07B65B46_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (auto07B65B46_ai >= 0 && lv_y <= auto07B65B46_ae) || (auto07B65B46_ai < 0 && lv_y >= auto07B65B46_ae) ) ; lv_y += auto07B65B46_ai ) {
+            if ((lib1_gf_LandGetHeightKey(lv_x, lv_y) > 4)) {
+                lib1_gv_lands[lv_x][lv_y].lv_haveSea = false;
+                continue;
+            }
+
+            if ((lib1_gf_LandGetHeightKey(lv_x, lv_y) < 4)) {
+                lib1_gv_lands[lv_x][lv_y].lv_haveSea = true;
+                continue;
+            }
+
+            lv_flag = false;
+            lv_offsetX = -1;
+            for ( ; ( (auto726894A3_ai >= 0 && lv_offsetX <= auto726894A3_ae) || (auto726894A3_ai < 0 && lv_offsetX >= auto726894A3_ae) ) ; lv_offsetX += auto726894A3_ai ) {
+                lv_offsetY = -1;
+                for ( ; ( (auto2CD62E8E_ai >= 0 && lv_offsetY <= auto2CD62E8E_ae) || (auto2CD62E8E_ai < 0 && lv_offsetY >= auto2CD62E8E_ae) ) ; lv_offsetY += auto2CD62E8E_ai ) {
+                    if ((lib1_gf_LandGetHeightKey((lv_x + lv_offsetX), (lv_y + lv_offsetY)) <= 3)) {
+                        lv_flag = true;
+                    }
+
+                }
+            }
+            lib1_gv_lands[lv_x][lv_y].lv_haveSea = lv_flag;
+        }
+    }
+}
+
+void lib1_gf_LandUnitInitialize () {
+    // Variable Declarations
+    int lv_x;
+    int lv_y;
+
+    // Automatic Variable Declarations
+    int auto53AB14CA_ae;
+    const int auto53AB14CA_ai = 1;
+    int auto6B471871_ae;
+    const int auto6B471871_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    auto53AB14CA_ae = (lib1_gv_worldMapWidth - 1);
+    lv_x = 0;
+    for ( ; ( (auto53AB14CA_ai >= 0 && lv_x <= auto53AB14CA_ae) || (auto53AB14CA_ai < 0 && lv_x >= auto53AB14CA_ae) ) ; lv_x += auto53AB14CA_ai ) {
+        auto6B471871_ae = (lib1_gv_worldMapHeight - 1);
+        lv_y = 0;
+        for ( ; ( (auto6B471871_ai >= 0 && lv_y <= auto6B471871_ae) || (auto6B471871_ai < 0 && lv_y >= auto6B471871_ae) ) ; lv_y += auto6B471871_ai ) {
+            lib1_gf_LandCreateUnit(lv_x, lv_y);
+        }
+    }
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: SetSeed
+//--------------------------------------------------------------------------------------------------
+bool lib1_gt_SetSeed_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    string lv_string;
+    int lv_seed;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_string = "";
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_string = StringWord(EventChatMessage(false), 2);
+    if ((lv_string != null)) {
+        lv_seed = StringToInt(StringWord(EventChatMessage(false), 2));
+        lib1_gf_LandInitialize(lv_seed);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void lib1_gt_SetSeed_Init () {
+    lib1_gt_SetSeed = TriggerCreate("lib1_gt_SetSeed_Func");
+    TriggerAddEventChatMessage(lib1_gt_SetSeed, c_playerAny, "-seed", false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Initialize
+//--------------------------------------------------------------------------------------------------
+bool lib1_gt_Initialize_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, StringExternal("Param/Value/lib_1_0032FA0B"));
+    lib1_gf_LandPosInitialize();
+    CameraSetBounds(PlayerGroupAll(), RegionFromId(2), true);
+    VisRevealerCreate(1, RegionFromId(2));
+    lib1_gf_LandInitialize(0);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void lib1_gt_Initialize_Init () {
+    lib1_gt_Initialize = TriggerCreate("lib1_gt_Initialize_Func");
+    TriggerAddEventMapInit(lib1_gt_Initialize);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: SwitchMap
+//--------------------------------------------------------------------------------------------------
+bool lib1_gt_SwitchMap_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    string lv_string;
+    int lv_id;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_string = "";
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 1000);
+    lv_string = StringWord(EventChatMessage(false), 2);
+    if ((lv_string != null)) {
+        lv_id = StringToInt(StringWord(EventChatMessage(false), 2));
+        lib1_gf_SetCameraBounds(lv_id);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void lib1_gt_SwitchMap_Init () {
+    lib1_gt_SwitchMap = TriggerCreate("lib1_gt_SwitchMap_Func");
+    TriggerAddEventChatMessage(lib1_gt_SwitchMap, c_playerAny, "-map", false);
+}
+
+void lib1_InitTriggers () {
+    lib1_gt_SetSeed_Init();
+    lib1_gt_Initialize_Init();
+    lib1_gt_SwitchMap_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool lib1_InitLib_completed = false;
+
+void lib1_InitLib () {
+    if (lib1_InitLib_completed) {
+        return;
+    }
+
+    lib1_InitLib_completed = true;
+
+    lib1_InitLibraries();
+    lib1_InitVariables();
+    lib1_InitTriggers();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+void InitLibs () {
+    libNtve_InitLib();
+    lib1_InitLib();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Map Initialization
+//--------------------------------------------------------------------------------------------------
+void InitMap () {
+    InitLibs();
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CTexture id="GroundTextureSnow">
+        <File value="Assets\Textures\glaze_snowy_diff_00.dds"/>
+        <Slot value="main.diffuse"/>
+    </CTexture>
+    <CTexture id="GroundTextureDessertNormal">
+        <File value="Assets\Textures\marsara_sandnormal.dds"/>
+        <Slot value="main.normal"/>
+    </CTexture>
+    <CTexture id="GroundTextureGrass">
+        <File value="Assets\Textures\haven_dirt_low.dds"/>
+        <Slot value="main.diffuse"/>
+    </CTexture>
+    <CTexture id="GroundTextureGrassNormal">
+        <File value="Assets\Textures\haven_dirtnormal.dds"/>
+        <Slot value="main.normal"/>
+    </CTexture>
+    <CTexture id="GroundTextureSand">
+        <File value="Assets\Textures\meinhoff_rough_sand_low.dds"/>
+        <Slot value="main.diffuse"/>
+    </CTexture>
+    <CTexture id="GroundTextureDessert">
+        <File value="Assets\Textures\marsara_sand_low.dds"/>
+        <Slot value="main.diffuse"/>
+    </CTexture>
+    <CTexture id="GroundTextureSandNormal">
+        <File value="Assets\Textures\meinhoff_rough_sandnormal.dds"/>
+        <Slot value="main.normal"/>
+    </CTexture>
+    <CTexture id="GroundTextureSeaGround">
+        <File value="Assets\Textures\shakuras_sand_low.dds"/>
+        <Slot value="main.diffuse"/>
+    </CTexture>
+    <CTexture id="GroundTextureSeaGroundNormal">
+        <File value="Assets\Textures\shakuras_sandnormal.dds"/>
+        <Slot value="main.normal"/>
+    </CTexture>
+    <CTexture id="GroundTextureSnowNormal">
+        <File value="Assets\Textures\glaze_snowy_normal_00.dds"/>
+        <Slot value="main.normal"/>
+    </CTexture>
+</Catalog>

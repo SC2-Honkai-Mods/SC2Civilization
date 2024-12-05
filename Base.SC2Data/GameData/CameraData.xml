@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CCamera id="Dflt">
+        <ZoomTable index="0">
+            <Param index="Distance" Value="160.000000"/>
+            <Param index="Pitch" Value="72.000000"/>
+        </ZoomTable>
+        <ZoomTable index="1">
+            <Param index="Distance" Value="120.000000"/>
+            <Param index="Pitch" Value="72.000000"/>
+        </ZoomTable>
+        <ZoomTable index="2">
+            <Param index="Distance" Value="90.000000"/>
+            <Param index="Pitch" Value="70.000000"/>
+        </ZoomTable>
+        <ZoomTable index="3">
+            <Param index="Distance" Value="65.000000"/>
+            <Param index="Pitch" Value="68.000000"/>
+        </ZoomTable>
+        <ZoomTable index="4">
+            <Param index="Distance" Value="50.000000"/>
+            <Param index="Pitch" Value="64.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="40.000000"/>
+            <Param index="Pitch" Modify="1" Value="60.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="34.000000"/>
+            <Param index="Pitch" Modify="1" Value="56.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="30.000000"/>
+            <Param index="Pitch" Modify="1" Value="52.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="26.000000"/>
+            <Param index="Pitch" Modify="1" Value="48.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="22.000000"/>
+            <Param index="Pitch" Modify="1" Value="44.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="18.000000"/>
+            <Param index="Pitch" Modify="1" Value="40.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="18.000000"/>
+            <Param index="Pitch" Modify="1" Value="30.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="18.000000"/>
+            <Param index="Pitch" Modify="1" Value="22.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="18.000000"/>
+            <Param index="Pitch" Modify="1" Value="16.000000"/>
+        </ZoomTable>
+        <ZoomTable>
+            <Param index="Distance" Modify="1" Value="18.000000"/>
+            <Param index="Pitch" Modify="1" Value="10.000000"/>
+        </ZoomTable>
+        <ZoomDefault value="7"/>
+    </CCamera>
+</Catalog>

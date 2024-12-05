@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CModel id="LandGroundBasic" parent="Building" Race="Protoss">
+        <Model value="Assets\Models\Lands\LandGroundBasic.m3"/>
+        <EditorCategories value=""/>
+        <Radius value="1.000000"/>
+        <SelectionLayer value="2"/>
+        <SelectionRadius value="1.000000"/>
+        <ShadowRadius value="0.000000"/>
+        <TextureDeclares Prefix="land_">
+            <Adaptions TriggerOnSubstring="_base" Slot="main.diffuse"/>
+            <Adaptions TriggerOnSubstring="_normal" Slot="main.normal"/>
+        </TextureDeclares>
+    </CModel>
+    <CModel id="LandGroundWithWater" parent="Building" Race="Protoss">
+        <Model value="Assets\Models\Lands\LandGroundWithWater.m3"/>
+        <EditorCategories value=""/>
+        <Radius value="1.000000"/>
+        <SelectionLayer value="2"/>
+        <SelectionRadius value="1.000000"/>
+        <ShadowRadius value="0.000000"/>
+        <TextureDeclares Prefix="land_">
+            <Adaptions TriggerOnSubstring="_base" Slot="main.diffuse"/>
+            <Adaptions TriggerOnSubstring="_normal" Slot="main.normal"/>
+        </TextureDeclares>
+    </CModel>
+</Catalog>

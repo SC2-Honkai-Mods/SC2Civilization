@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CTerrain id="HonkaiCivilian">
+        <EditorCategories value="Climate:Wasteland"/>
+        <Lighting value="Korhal"/>
+        <LoadingScreen value="Assets\Textures\loading-shakuras.dds"/>
+        <Ambience value="Ambience_Shakuras"/>
+        <ReverbAmbient value="BetaVerb"/>
+        <BlendTextures value="ShakurasTemple1"/>
+        <BlendTextures value="ShakurasTemple2"/>
+        <BlendTextures value="ShakurasTemple3"/>
+        <BlendTextures value="ShakurasTemple4"/>
+        <BlendTextures value="ShakurasTemple5"/>
+        <BlendTextures value="ShakurasTemple6"/>
+        <BlendTextures value="ShakurasTemple7"/>
+        <BlendTextures value="ShakurasTemple8"/>
+        <HardTiles value="MarSaraTile"/>
+        <CliffSets value="ShakurasTempleCliff0"/>
+        <CliffSets value="ShakurasTempleCliff1"/>
+        <FixedSkyboxModel value="ShakurasSkyBox"/>
+        <FogEnabled value="1"/>
+        <FogColor value="255,162,45,156"/>
+        <FogDensity value="0.060000"/>
+        <FogFalloff value="0.200000"/>
+        <FogStartingHeight value="-0.900000"/>
+        <CreepBaseTexture value="Assets\Textures\Creep_Shakuras.dds"/>
+        <HeightMapEnabled value="1"/>
+    </CTerrain>
+</Catalog>
